@@ -157,12 +157,15 @@ diag_pub = rospy.Publisher('diagnostics', DiagnosticArray, queue_size=1)
 diag_pub_time = rospy.get_time();
 
 # Check your COM port and baud rate
-rospy.loginfo("Opening %s...", port)
+rospy.loginfo("myyy Opening %s...", port)
+rospy.loginfo("################################################...")
 try:
-    ser = serial.Serial(port=port, baudrate=115200, timeout=1)
-    #ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
+    # ser = serial.Serial(port=port, baudrate=115200, timeout=1)
+    rospy.loginfo("IMU found at port "+port + ".")
+    ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
 except serial.serialutil.SerialException:
     rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
+    rospy.loginfo("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
     #exit
     sys.exit(2)
 
@@ -171,8 +174,8 @@ pitch=0
 yaw=0
 seq=0
 accel_factor = 0.00980665    # sensor reports accel as milli-g(1/1000 of earth gravity). Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
-rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
-rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
+rospy.loginfo("Giving the OLA IMU board 6 seconds to boot...")
+rospy.sleep(6) # Sleep for 5 seconds to wait for the board to boot
 
 ### configure board ###
 #stop datastream
@@ -187,7 +190,7 @@ discard = ser.readlines()
 #set output mode
 # ser.write(('#ox').encode("utf-8")) # To start display angle and sensor reading in text
 
-rospy.loginfo("Writing calibration values to razor IMU board...")
+rospy.loginfo("Not Writing calibration values to razor IMU board...")
 #set calibration values
 # ser.write(('#caxm' + str(accel_x_min)).encode("utf-8"))
 # ser.write(('#caxM' + str(accel_x_max)).encode("utf-8"))
@@ -235,7 +238,7 @@ rospy.loginfo("Writing calibration values to razor IMU board...")
 # ser.write(('#o1').encode("utf-8"))
 
 #automatic flush - NOT WORKING
-#ser.flushInput()  #discard old input, still in invalid format
+ser.flushInput()  #discard old input, still in invalid format
 #flush manually, as above command is not working - it breaks the serial connection
 rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
@@ -248,6 +251,7 @@ while not rospy.is_shutdown():
     if (errcount > 10):
         break
     line = bytearray(ser.readline()).decode("utf-8")
+    rospy.loginfo("raw data:"+ line + "")
     # if ((line.find("#YPRAG=") == -1) or (line.find("\r\n") == -1)): 
     #     rospy.logwarn("Bad IMU data or bad sync")
     #     errcount = errcount+1
@@ -256,6 +260,7 @@ while not rospy.is_shutdown():
     #f.write(line)                     # Write to the output log file
     line = line.replace("\r\n","")   # Delete "\r\n"
     words = line.split(",")    # Fields split "q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"
+    rospy.loginfo("processed data:"+ words + "")
     if len(words) != 9:
         rospy.logwarn("Bad IMU data or bad sync")
         errcount = errcount+1
