@@ -33,23 +33,23 @@ https://learn.sparkfun.com/tutorials/openlog-artemis-hookup-guide
 ## *OLA Menu configuration: (after factory reset)
 
   * Menu: Configure Time Stamp
-    * 1) Log Time ..>> Disabled
-    * 2) Log Date ..>> Disabled
+    1) Log Time ..>> Disabled
+    2) Log Date ..>> Disabled
     
   * Menu: Configure Terminal Output
-    * 7) Output Actual Hertz ..>> Disabled
+    7) Output Actual Hertz ..>> Disabled
 
   * Menu: Configure IMU
-    * 12) DMP ..>> Enabled
-    * 13) or 14) ..>> Enabled
-    * 15) Accelerometer ..>> Enabled
-    * 16) Gyro ..>> Enabled  
+    * "12) DMP ..>> Enabled"
+    * "13) ..>> Enabled"
+    * "15) Accelerometer ..>> Enabled"
+    * "16) Gyro ..>> Enabled"
 
 so the serial data should look like:
 
  *"q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"*
  
-
+DMP9(Quart9) is being avoided since the magnetometer has some issues(physical/SDK bug??) that ruins the Yaw
 
 ##################x######################
 
