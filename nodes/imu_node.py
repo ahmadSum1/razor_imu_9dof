@@ -159,7 +159,7 @@ diag_pub_time = rospy.get_time();
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
 try:
-    ser = serial.Serial(port=port, baudrate=57600, timeout=1)
+    ser = serial.Serial(port=port, baudrate=115200, timeout=1)
     #ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
 except serial.serialutil.SerialException:
     rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
