@@ -44,6 +44,9 @@ https://learn.sparkfun.com/tutorials/openlog-artemis-hookup-guide
     * 13) or 14) ..>> Enabled
     * 15) Accelerometer ..>> Enabled
     * 16) Gyro ..>> Enabled  
+
+so the serial data should look like:
+ *"q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"
  
 
 
