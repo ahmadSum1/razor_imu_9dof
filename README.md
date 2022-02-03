@@ -48,6 +48,7 @@ https://learn.sparkfun.com/tutorials/openlog-artemis-hookup-guide
 
 
 ##################x######################
+
 Configure
 ---------
 In its default configuration, ``razor_imu_9dof`` expects a yaml config file ``my_razor.yaml`` with:
