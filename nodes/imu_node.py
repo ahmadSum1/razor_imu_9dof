@@ -35,7 +35,7 @@ import sys
 
 #from time import time
 from sensor_msgs.msg import Imu
-from tf.transformations import quaternion_from_euler
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from dynamic_reconfigure.server import Server
 from razor_imu_9dof.cfg import imuConfig
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -51,6 +51,28 @@ def reconfig_callback(config, level):
     imu_yaw_calibration = config['yaw_calibration']
     rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
+
+def euler_from_quaternion(x, y, z, w):
+        """
+        Convert a quaternion into euler angles (roll, pitch, yaw)
+        roll is rotation around x in radians (counterclockwise)
+        pitch is rotation around y in radians (counterclockwise)
+        yaw is rotation around z in radians (counterclockwise)
+        """
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll_x = math.atan2(t0, t1)
+     
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch_y = math.asin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw_z = math.atan2(t3, t4)
+     
+        return math.degrees(roll_x), math.degrees(pitch_y), math.degrees(yaw_z) # in degrees
 
 rospy.init_node("razor_node")
 
@@ -148,13 +170,13 @@ roll=0
 pitch=0
 yaw=0
 seq=0
-accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2). Convert to m/s^2.
-rospy.loginfo("Giving the razor IMU board 5 seconds to boot...")
+accel_factor = 0.00980665    # sensor reports accel as milli-g(1/1000 of earth gravity). Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
+rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
 
 ### configure board ###
 #stop datastream
-ser.write(('#o0').encode("utf-8"))
+# ser.write(('#o0').encode("utf-8"))
 
 #discard old input
 #automatic flush - NOT WORKING
@@ -163,54 +185,54 @@ ser.write(('#o0').encode("utf-8"))
 discard = ser.readlines() 
 
 #set output mode
-ser.write(('#ox').encode("utf-8")) # To start display angle and sensor reading in text
+# ser.write(('#ox').encode("utf-8")) # To start display angle and sensor reading in text
 
 rospy.loginfo("Writing calibration values to razor IMU board...")
 #set calibration values
-ser.write(('#caxm' + str(accel_x_min)).encode("utf-8"))
-ser.write(('#caxM' + str(accel_x_max)).encode("utf-8"))
-ser.write(('#caym' + str(accel_y_min)).encode("utf-8"))
-ser.write(('#cayM' + str(accel_y_max)).encode("utf-8"))
-ser.write(('#cazm' + str(accel_z_min)).encode("utf-8"))
-ser.write(('#cazM' + str(accel_z_max)).encode("utf-8"))
+# ser.write(('#caxm' + str(accel_x_min)).encode("utf-8"))
+# ser.write(('#caxM' + str(accel_x_max)).encode("utf-8"))
+# ser.write(('#caym' + str(accel_y_min)).encode("utf-8"))
+# ser.write(('#cayM' + str(accel_y_max)).encode("utf-8"))
+# ser.write(('#cazm' + str(accel_z_min)).encode("utf-8"))
+# ser.write(('#cazM' + str(accel_z_max)).encode("utf-8"))
 
-if (not calibration_magn_use_extended):
-    ser.write(('#cmxm' + str(magn_x_min)).encode("utf-8"))
-    ser.write(('#cmxM' + str(magn_x_max)).encode("utf-8"))
-    ser.write(('#cmym' + str(magn_y_min)).encode("utf-8"))
-    ser.write(('#cmyM' + str(magn_y_max)).encode("utf-8"))
-    ser.write(('#cmzm' + str(magn_z_min)).encode("utf-8"))
-    ser.write(('#cmzM' + str(magn_z_max)).encode("utf-8"))
-else:
-    ser.write(('#ccx' + str(magn_ellipsoid_center[0])).encode("utf-8"))
-    ser.write(('#ccy' + str(magn_ellipsoid_center[1])).encode("utf-8"))
-    ser.write(('#ccz' + str(magn_ellipsoid_center[2])).encode("utf-8"))
-    ser.write(('#ctxX' + str(magn_ellipsoid_transform[0][0])).encode("utf-8"))
-    ser.write(('#ctxY' + str(magn_ellipsoid_transform[0][1])).encode("utf-8"))
-    ser.write(('#ctxZ' + str(magn_ellipsoid_transform[0][2])).encode("utf-8"))
-    ser.write(('#ctyX' + str(magn_ellipsoid_transform[1][0])).encode("utf-8"))
-    ser.write(('#ctyY' + str(magn_ellipsoid_transform[1][1])).encode("utf-8"))
-    ser.write(('#ctyZ' + str(magn_ellipsoid_transform[1][2])).encode("utf-8"))
-    ser.write(('#ctzX' + str(magn_ellipsoid_transform[2][0])).encode("utf-8"))
-    ser.write(('#ctzY' + str(magn_ellipsoid_transform[2][1])).encode("utf-8"))
-    ser.write(('#ctzZ' + str(magn_ellipsoid_transform[2][2])).encode("utf-8"))
+# if (not calibration_magn_use_extended):
+#     ser.write(('#cmxm' + str(magn_x_min)).encode("utf-8"))
+#     ser.write(('#cmxM' + str(magn_x_max)).encode("utf-8"))
+#     ser.write(('#cmym' + str(magn_y_min)).encode("utf-8"))
+#     ser.write(('#cmyM' + str(magn_y_max)).encode("utf-8"))
+#     ser.write(('#cmzm' + str(magn_z_min)).encode("utf-8"))
+#     ser.write(('#cmzM' + str(magn_z_max)).encode("utf-8"))
+# else:
+#     ser.write(('#ccx' + str(magn_ellipsoid_center[0])).encode("utf-8"))
+#     ser.write(('#ccy' + str(magn_ellipsoid_center[1])).encode("utf-8"))
+#     ser.write(('#ccz' + str(magn_ellipsoid_center[2])).encode("utf-8"))
+#     ser.write(('#ctxX' + str(magn_ellipsoid_transform[0][0])).encode("utf-8"))
+#     ser.write(('#ctxY' + str(magn_ellipsoid_transform[0][1])).encode("utf-8"))
+#     ser.write(('#ctxZ' + str(magn_ellipsoid_transform[0][2])).encode("utf-8"))
+#     ser.write(('#ctyX' + str(magn_ellipsoid_transform[1][0])).encode("utf-8"))
+#     ser.write(('#ctyY' + str(magn_ellipsoid_transform[1][1])).encode("utf-8"))
+#     ser.write(('#ctyZ' + str(magn_ellipsoid_transform[1][2])).encode("utf-8"))
+#     ser.write(('#ctzX' + str(magn_ellipsoid_transform[2][0])).encode("utf-8"))
+#     ser.write(('#ctzY' + str(magn_ellipsoid_transform[2][1])).encode("utf-8"))
+#     ser.write(('#ctzZ' + str(magn_ellipsoid_transform[2][2])).encode("utf-8"))
 
-ser.write(('#cgx' + str(gyro_average_offset_x)).encode("utf-8"))
-ser.write(('#cgy' + str(gyro_average_offset_y)).encode("utf-8"))
-ser.write(('#cgz' + str(gyro_average_offset_z)).encode("utf-8"))
+# ser.write(('#cgx' + str(gyro_average_offset_x)).encode("utf-8"))
+# ser.write(('#cgy' + str(gyro_average_offset_y)).encode("utf-8"))
+# ser.write(('#cgz' + str(gyro_average_offset_z)).encode("utf-8"))
 
 #print calibration values for verification by user
-ser.flushInput()
-ser.write(('#p').encode("utf-8"))
-calib_data = ser.readlines()
-calib_data_print = "Printing set calibration values:\r\n"
-for row in calib_data:
-    line = bytearray(row).decode("utf-8")
-    calib_data_print += line
-rospy.loginfo(calib_data_print)
+# ser.flushInput()
+# ser.write(('#p').encode("utf-8"))
+# calib_data = ser.readlines()
+# calib_data_print = "Printing set calibration values:\r\n"
+# for row in calib_data:
+#     line = bytearray(row).decode("utf-8")
+#     calib_data_print += line
+# rospy.loginfo(calib_data_print)
 
 #start datastream
-ser.write(('#o1').encode("utf-8"))
+# ser.write(('#o1').encode("utf-8"))
 
 #automatic flush - NOT WORKING
 #ser.flushInput()  #discard old input, still in invalid format
@@ -226,20 +248,26 @@ while not rospy.is_shutdown():
     if (errcount > 10):
         break
     line = bytearray(ser.readline()).decode("utf-8")
-    if ((line.find("#YPRAG=") == -1) or (line.find("\r\n") == -1)): 
-        rospy.logwarn("Bad IMU data or bad sync")
-        errcount = errcount+1
-        continue
-    line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
+    # if ((line.find("#YPRAG=") == -1) or (line.find("\r\n") == -1)): 
+    #     rospy.logwarn("Bad IMU data or bad sync")
+    #     errcount = errcount+1
+    #     continue
+    # line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
     #f.write(line)                     # Write to the output log file
     line = line.replace("\r\n","")   # Delete "\r\n"
-    words = line.split(",")    # Fields split
+    words = line.split(",")    # Fields split "q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"
     if len(words) != 9:
         rospy.logwarn("Bad IMU data or bad sync")
         errcount = errcount+1
         continue
     else:
         errcount = 0
+        q1 = float(words[0])
+        q2 = float(words[1])
+        q3 = float(words[2])
+        w = math.sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)))
+        roll_deg, pitch_deg, yaw_deg = euler_from_quaternion(q1, q2, q3, w)
+
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
         yaw_deg = -float(words[0])
         yaw_deg = yaw_deg + imu_yaw_calibration
@@ -249,8 +277,8 @@ while not rospy.is_shutdown():
             yaw_deg = yaw_deg + 360.0
         yaw = yaw_deg*degrees2rad
         #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
-        pitch = -float(words[1])*degrees2rad
-        roll = float(words[2])*degrees2rad
+        pitch = -pitch_deg*degrees2rad
+        roll = roll_deg*degrees2rad
 
         # Publish message
         # AHRS firmware accelerations are negated
@@ -265,11 +293,11 @@ while not rospy.is_shutdown():
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103) 
         imuMsg.angular_velocity.z = -float(words[8])
 
-    q = quaternion_from_euler(roll,pitch,yaw)
-    imuMsg.orientation.x = q[0]
-    imuMsg.orientation.y = q[1]
-    imuMsg.orientation.z = q[2]
-    imuMsg.orientation.w = q[3]
+    # q = quaternion_from_euler(roll,pitch,yaw)
+    imuMsg.orientation.x = q1
+    imuMsg.orientation.y = q2
+    imuMsg.orientation.z = q3
+    imuMsg.orientation.w = w
     imuMsg.header.stamp= rospy.Time.now()
     imuMsg.header.frame_id = frame_id
     imuMsg.header.seq = seq
