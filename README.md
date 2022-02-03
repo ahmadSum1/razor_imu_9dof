@@ -1,7 +1,6 @@
-Official ROS Documentation
+Origunal Official ROS Documentation
 --------------------------
-A much more extensive and standard ROS-style version of this documentation can be found on the ROS wiki at:
-
+https://github.com/ENSTABretagneRobotics/razor_imu_9dof
 http://wiki.ros.org/razor_imu_9dof
 
 
@@ -25,34 +24,29 @@ catkin_make
 # For 3D visualization, from Ubuntu 20.04
 cd src/razor_imu_9dof/nodes ; wget https://www.glowscript.org/docs/VPythonDocs/VPtoGS.py ; python3 VPtoGS.py ; cp -f Converted/display_3D_visualization.py display_3D_visualization.py ; cd ../../..
 ```
+# Intended Change ..>> make compitable with default SparkFun OpenLog_Artemis firmware
+ -- Changing the serial reader file to adopt to the one directional data flow(no reading, no configuration setting/sending command from the ros driver)
 
-Install Arduino firmware
--------------------------
-1) For SPX-15846 and DEV-16832 (OpenLog Artemis), you will need to follow the same instructions as for the ``OLA_IMU_Basics.ino`` sample from https://github.com/sparkfun/OpenLog_Artemis (i.e. get the drivers from https://learn.sparkfun.com/tutorials/how-to-install-ch340-drivers, install SparkFun Apollo3 boards in Arduino IDE as in https://learn.sparkfun.com/tutorials/installing-board-definitions-in-the-arduino-ide (add https://raw.githubusercontent.com/sparkfun/Arduino_Boards/master/IDE_Board_Manager/package_sparkfun_index.json to `File` → `Preferences` → `Additional Board Manager URLs`) and ensure you select `SparkFun Apollo3` → `SparkFun RedBoard Artemis ATP` as the board and install SparkFun ICM 20948 IMU Arduino library as in https://learn.sparkfun.com/tutorials/installing-an-arduino-library). For SEN-14001 (9DoF Razor IMU M0), you will need to follow the same instructions as for the default firmware on https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide and use an updated version of SparkFun_MPU-9250-DMP_Arduino_Library from https://github.com/lebarsfa/SparkFun_MPU-9250-DMP_Arduino_Library (an updated version of the default firmware is also available on https://github.com/lebarsfa/9DOF_Razor_IMU).
+https://learn.sparkfun.com/tutorials/openlog-artemis-hookup-guide
 
-2) Open ``src/Razor_AHRS/Razor_AHRS.ino`` in Arduino IDE. Note: this is a [modified version](https://github.com/lebarsfa/razor-9dof-ahrs)
-of Peter Bartz' original Arduino code (see https://github.com/ptrbrtz/razor-9dof-ahrs). 
-Use this version - it emits linear acceleration and angular velocity data required by the ROS Imu message
+## *OLA Menu configuration: (after factory reset)
 
-3) Select your hardware here by uncommenting the right line in ``src/Razor_AHRS/Razor_AHRS.ino``, e.g.
+  * Menu: Configure Time Stamp
+    1) Log Time ..>> Disabled
+    2) Log Date ..>> Disabled
+    
+  * Menu: Configure Terminal Output
+    7) Output Actual Hertz ..>> Disabled
 
-```cpp
-// HARDWARE OPTIONS
-/*****************************************************************/
-// Select your hardware here by uncommenting one line!
-//#define HW__VERSION_CODE 10125 // SparkFun "9DOF Razor IMU" version "SEN-10125" (HMC5843 magnetometer)
-//#define HW__VERSION_CODE 10736 // SparkFun "9DOF Razor IMU" version "SEN-10736" (HMC5883L magnetometer)
-//#define HW__VERSION_CODE 14001 // SparkFun "9DoF Razor IMU M0" version "SEN-14001"
-//#define HW__VERSION_CODE 15846 // SparkFun "OpenLog Artemis" version "SPX-15846"
-#define HW__VERSION_CODE 16832 // SparkFun "OpenLog Artemis" version "DEV-16832"
-//#define HW__VERSION_CODE 10183 // SparkFun "9DOF Sensor Stick" version "SEN-10183" (HMC5843 magnetometer)
-//#define HW__VERSION_CODE 10321 // SparkFun "9DOF Sensor Stick" version "SEN-10321" (HMC5843 magnetometer)
-//#define HW__VERSION_CODE 10724 // SparkFun "9DOF Sensor Stick" version "SEN-10724" (HMC5883L magnetometer)
-```
-
-4) Upload Arduino sketch to the board
+  * Menu: Configure IMU
+    12) DMP ..>> Enabled
+    13) or 14) ..>> Enabled
+    15) Accelerometer ..>> Enabled
+    16) Gyro ..>> Enabled  
+ 
 
 
+##################x######################
 Configure
 ---------
 In its default configuration, ``razor_imu_9dof`` expects a yaml config file ``my_razor.yaml`` with:
