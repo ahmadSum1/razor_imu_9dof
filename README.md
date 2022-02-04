@@ -1,4 +1,4 @@
-Origunal Official ROS Documentation
+Original Official ROS Documentation
 --------------------------
 https://github.com/ENSTABretagneRobotics/razor_imu_9dof
 
