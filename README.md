@@ -1,4 +1,6 @@
-Origunal Official ROS Documentation
+# Modifying to make it __6dof__ with SparkFun OpenLog Artemis (DEV-16832)
+
+Original Official ROS Documentation
 --------------------------
 https://github.com/ENSTABretagneRobotics/razor_imu_9dof
 
@@ -25,31 +27,47 @@ catkin_make
 # For 3D visualization, from Ubuntu 20.04
 cd src/razor_imu_9dof/nodes ; wget https://www.glowscript.org/docs/VPythonDocs/VPtoGS.py ; python3 VPtoGS.py ; cp -f Converted/display_3D_visualization.py display_3D_visualization.py ; cd ../../..
 ```
-# Intended Change ..>> make compitable with default SparkFun OpenLog_Artemis firmware
- -- Changing the serial reader file to adopt to the one directional data flow(no reading, no configuration setting/sending command from the ros driver)
+
+## Trouble Shooting
+
+Dont forget to *"source YOUR_CATKIN_WORKSPACE/devel/setup.bash"*
+```bash
+ERROR: cannot launch node of type [package/...]: can’t locate node [imu_node.py]
+```
+This might be due to permission error [see](https://get-help.robotigniteacademy.com/t/error-cannot-launch-node-of-type-package-file-py-cant-locate-node-file-py-in-package-package/54)
+```bash
+chmod +x /path/to/imu_node.py  # replace '/path/to/imu_node.py' by the real path of your file
+```
+
+
+## Hardware/Sensor configuration
+### Intended Change ..>> make compitable with default SparkFun OpenLog_Artemis firmware(v2.1)
+ -- Changing the serial reader file to adopt to the one directional data flow (ros reader will assme data is being delivered in the expected format)
+ Sensor configuration shell be done manually before.
 
 https://learn.sparkfun.com/tutorials/openlog-artemis-hookup-guide
 
-## *OLA Menu configuration: (after factory reset)
+## *OLA Menu configuration: (after factory reset)*
+
+  * Menu: Configure Terminal Output
+    * "3) set Serial Terminal Baud rate -->> 57600"
+    * "7) Output Actual Hertz -->> Disabled"    
 
   * Menu: Configure Time Stamp
-    1) Log Time ..>> Disabled
-    2) Log Date ..>> Disabled
-    
-  * Menu: Configure Terminal Output
-    7) Output Actual Hertz ..>> Disabled
+    * "1) Log Time -->> Disabled"
+    * "2) Log Date -->> Disabled"
 
   * Menu: Configure IMU
-    * "12) DMP ..>> Enabled"
-    * "13) ..>> Enabled"
-    * "15) Accelerometer ..>> Enabled"
-    * "16) Gyro ..>> Enabled"
+    * "12) DMP -->> Enabled"
+    * "13) -->> Enabled"
+    * "15) Accelerometer -->> Enabled"
+    * "16) Gyro -->> Enabled"
 
 so the serial data should look like:
 
  *"q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"*
  
-DMP9(Quart9) is being avoided since the magnetometer has some issues(physical/SDK bug??) that ruins the Yaw
+## __DMP9(Quart9) is being avoided since the magnetometer has some issues(physical/SDK bug??) that ruins the Yaw__
 
 ##################x######################
 

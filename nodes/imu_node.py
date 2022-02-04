@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Modified february 2022
+# By Sakib Ahmed @ahmadsum1
+
 # Copyright (c) 2012, Tang Tiong Yew
 # All rights reserved.
 #
@@ -42,6 +45,8 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi/180.0
 imu_yaw_calibration = 0.0
+
+print ("modified file")
 
 # Callback for dynamic reconfigure requests
 def reconfig_callback(config, level):
@@ -157,10 +162,9 @@ diag_pub = rospy.Publisher('diagnostics', DiagnosticArray, queue_size=1)
 diag_pub_time = rospy.get_time();
 
 # Check your COM port and baud rate
-rospy.loginfo("myyy Opening %s...", port)
-rospy.loginfo("################################################...")
+rospy.loginfo("Opening %s...", port)
 try:
-    # ser = serial.Serial(port=port, baudrate=115200, timeout=1)
+    
     rospy.loginfo("IMU found at port "+port + ".")
     ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
 except serial.serialutil.SerialException:
@@ -173,9 +177,9 @@ roll=0
 pitch=0
 yaw=0
 seq=0
-accel_factor = 0.00980665    # sensor reports accel as milli-g(1/1000 of earth gravity). Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
-rospy.loginfo("Giving the OLA IMU board 6 seconds to boot...")
-rospy.sleep(6) # Sleep for 5 seconds to wait for the board to boot
+accel_factor = 0.000980665    # sensor reports accel as milli-g(1/1000 of earth gravity). Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
+rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
+rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
 
 ### configure board ###
 #stop datastream
@@ -185,63 +189,17 @@ rospy.sleep(6) # Sleep for 5 seconds to wait for the board to boot
 #automatic flush - NOT WORKING
 #ser.flushInput()  #discard old input, still in invalid format
 #flush manually, as above command is not working
-discard = ser.readlines() 
 
-#set output mode
-# ser.write(('#ox').encode("utf-8")) # To start display angle and sensor reading in text
+for i in range(10):
+    ser.flushInput()
+    discard = ser.readline()
 
-rospy.loginfo("Not Writing calibration values to razor IMU board...")
-#set calibration values
-# ser.write(('#caxm' + str(accel_x_min)).encode("utf-8"))
-# ser.write(('#caxM' + str(accel_x_max)).encode("utf-8"))
-# ser.write(('#caym' + str(accel_y_min)).encode("utf-8"))
-# ser.write(('#cayM' + str(accel_y_max)).encode("utf-8"))
-# ser.write(('#cazm' + str(accel_z_min)).encode("utf-8"))
-# ser.write(('#cazM' + str(accel_z_max)).encode("utf-8"))
-
-# if (not calibration_magn_use_extended):
-#     ser.write(('#cmxm' + str(magn_x_min)).encode("utf-8"))
-#     ser.write(('#cmxM' + str(magn_x_max)).encode("utf-8"))
-#     ser.write(('#cmym' + str(magn_y_min)).encode("utf-8"))
-#     ser.write(('#cmyM' + str(magn_y_max)).encode("utf-8"))
-#     ser.write(('#cmzm' + str(magn_z_min)).encode("utf-8"))
-#     ser.write(('#cmzM' + str(magn_z_max)).encode("utf-8"))
-# else:
-#     ser.write(('#ccx' + str(magn_ellipsoid_center[0])).encode("utf-8"))
-#     ser.write(('#ccy' + str(magn_ellipsoid_center[1])).encode("utf-8"))
-#     ser.write(('#ccz' + str(magn_ellipsoid_center[2])).encode("utf-8"))
-#     ser.write(('#ctxX' + str(magn_ellipsoid_transform[0][0])).encode("utf-8"))
-#     ser.write(('#ctxY' + str(magn_ellipsoid_transform[0][1])).encode("utf-8"))
-#     ser.write(('#ctxZ' + str(magn_ellipsoid_transform[0][2])).encode("utf-8"))
-#     ser.write(('#ctyX' + str(magn_ellipsoid_transform[1][0])).encode("utf-8"))
-#     ser.write(('#ctyY' + str(magn_ellipsoid_transform[1][1])).encode("utf-8"))
-#     ser.write(('#ctyZ' + str(magn_ellipsoid_transform[1][2])).encode("utf-8"))
-#     ser.write(('#ctzX' + str(magn_ellipsoid_transform[2][0])).encode("utf-8"))
-#     ser.write(('#ctzY' + str(magn_ellipsoid_transform[2][1])).encode("utf-8"))
-#     ser.write(('#ctzZ' + str(magn_ellipsoid_transform[2][2])).encode("utf-8"))
-
-# ser.write(('#cgx' + str(gyro_average_offset_x)).encode("utf-8"))
-# ser.write(('#cgy' + str(gyro_average_offset_y)).encode("utf-8"))
-# ser.write(('#cgz' + str(gyro_average_offset_z)).encode("utf-8"))
-
-#print calibration values for verification by user
-# ser.flushInput()
-# ser.write(('#p').encode("utf-8"))
-# calib_data = ser.readlines()
-# calib_data_print = "Printing set calibration values:\r\n"
-# for row in calib_data:
-#     line = bytearray(row).decode("utf-8")
-#     calib_data_print += line
-# rospy.loginfo(calib_data_print)
-
-#start datastream
-# ser.write(('#o1').encode("utf-8"))
 
 #automatic flush - NOT WORKING
 ser.flushInput()  #discard old input, still in invalid format
 #flush manually, as above command is not working - it breaks the serial connection
-rospy.loginfo("Flushing first 200 IMU entries...")
-for x in range(0, 200):
+rospy.loginfo("Flushing first 20 IMU entries...")
+for x in range(0, 20):
     line = bytearray(ser.readline()).decode("utf-8")
 rospy.loginfo("Publishing IMU data...")
 #f = open("raw_imu_data.log", 'w')
@@ -250,31 +208,33 @@ errcount = 0
 while not rospy.is_shutdown():
     if (errcount > 10):
         break
-    line = bytearray(ser.readline()).decode("utf-8")
-    rospy.loginfo("raw data:"+ line + "")
-    # if ((line.find("#YPRAG=") == -1) or (line.find("\r\n") == -1)): 
-    #     rospy.logwarn("Bad IMU data or bad sync")
-    #     errcount = errcount+1
-    #     continue
-    # line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
-    #f.write(line)                     # Write to the output log file
-    line = line.replace("\r\n","")   # Delete "\r\n"
-    words = line.split(",")    # Fields split "q1,q2,q3,Ax,Ay,Az,Gx,Gy,Gz,"
-    rospy.loginfo("processed data:"+ words + "")
+    raw_data=str(ser.readline().decode("utf-8")).split(",")
+    # print("raw data:"+ str(raw_data))
+    words = [float(i) for i in raw_data[0:-1]]  # Delete/trim "\r\n" and convert to float
+
+    # print("processed data:")
+    # print(words)
+
     if len(words) != 9:
         rospy.logwarn("Bad IMU data or bad sync")
         errcount = errcount+1
         continue
     else:
         errcount = 0
-        q1 = float(words[0])
-        q2 = float(words[1])
-        q3 = float(words[2])
-        w = math.sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)))
+        q1 = words[0]
+        q2 = words[1]
+        q3 = words[2]
+        q123 = (q1 ** 2) + (q2 ** 2) + (q3 ** 2)   
+        if q123>1:
+            q123_norm = 1           #avoid sqrt of negative
+            rospy.logwarn("Bad IMU data or bad sync: quaternion normalization error. dataframe:"+str(words))
+        else:
+            q123_norm = q123
+        w = math.sqrt(1.0 - (q123_norm))
         roll_deg, pitch_deg, yaw_deg = euler_from_quaternion(q1, q2, q3, w)
 
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
-        yaw_deg = -float(words[0])
+        yaw_deg = -words[0]
         yaw_deg = yaw_deg + imu_yaw_calibration
         if yaw_deg > 180.0:
             yaw_deg = yaw_deg - 360.0
