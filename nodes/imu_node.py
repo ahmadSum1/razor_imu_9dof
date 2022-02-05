@@ -177,7 +177,11 @@ roll=0
 pitch=0
 yaw=0
 seq=0
-accel_factor = 0.000980665    # sensor reports accel as milli-g(1/1000 of earth gravity). Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
+
+# sensor reports raw accel which needs to be scaled by 8.192 ==>> as milli-g(1/1000 of earth gravity). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L191
+# Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
+# raw_accel*(1/8.192)*(1/1000)*9.80665 ==>> m/s^2 
+accel_factor = 0.00119710083    
 rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
 
