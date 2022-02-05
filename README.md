@@ -32,7 +32,8 @@ cd src/razor_imu_9dof/nodes ; wget https://www.glowscript.org/docs/VPythonDocs/V
 
 Dont forget to *"source YOUR_CATKIN_WORKSPACE/devel/setup.bash"*
 ```bash
-ERROR: cannot launch node of type [package/...]: can’t locate node [imu_node.py]
+RLException: [razor-pub-and-display.launch] is neither a launch file in package [razor_imu_9dof] nor is [razor_imu_9dof] a launch file name
+The traceback for the exception was written to the log file
 ```
 This might be due to permission error [see](https://get-help.robotigniteacademy.com/t/error-cannot-launch-node-of-type-package-file-py-cant-locate-node-file-py-in-package-package/54)
 ```bash
