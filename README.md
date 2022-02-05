@@ -35,10 +35,10 @@ Dont forget to *"source YOUR_CATKIN_WORKSPACE/devel/setup.bash"*
 RLException: [razor-pub-and-display.launch] is neither a launch file in package [razor_imu_9dof] nor is [razor_imu_9dof] a launch file name
 The traceback for the exception was written to the log file
 ```
-This might be due to permission error [see](https://get-help.robotigniteacademy.com/t/error-cannot-launch-node-of-type-package-file-py-cant-locate-node-file-py-in-package-package/54)
+This **MIGHT BE** due to permission error [see](https://get-help.robotigniteacademy.com/t/error-cannot-launch-node-of-type-package-file-py-cant-locate-node-file-py-in-package-package/54)
 ```bash
 chmod +x /path/to/imu_node.py  # replace '/path/to/imu_node.py' by the real path of your file
-```
+``` 
 
 
 ## Hardware/Sensor configuration
@@ -91,6 +91,8 @@ Then, edit ``my_razor.yaml`` as needed
 Launch
 ------
 Publisher only:
+
+*Apperantly you might need to source in the same terminal tab everytime before launching*
 
 ```bash
 roslaunch razor_imu_9dof razor-pub.launch
