@@ -187,8 +187,8 @@ accel_factor = 0.00119710083
 
 
 """
-    raw Gyro data needs to be scaled by 131 to get ==>> DPS(°/s) ==>> RPS(rad/s). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L220-L240 and https://github.com/adafruit/Adafruit_ICM20X/blob/6ec93fee035892f780176ffa64be3af1912be559/Adafruit_ICM20948.cpp#L139-L159
-    1 rad/s = 57.29578 °/s
+    raw Gyro data needs to be scaled by 131 to get ==>> DPS(deg/s) ==>> RPS(rad/s). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L220-L240 and https://github.com/adafruit/Adafruit_ICM20X/blob/6ec93fee035892f780176ffa64be3af1912be559/Adafruit_ICM20948.cpp#L139-L159
+    1 rad/s = 57.29578 deg/s
     raw_gyro*(1/131)*(1/57.29578) ==>> rad/s
 """
 gyro_factor = 0.00013323123
