@@ -104,20 +104,20 @@ imuMsg.orientation_covariance = [
 # nonlinearity spec: 0.2% of full scale => 8 degrees/sec = 0.14 rad/sec
 # Choosing the larger (0.14) as std dev, variance = 0.14^2 ~= 0.02
 imuMsg.angular_velocity_covariance = [
-0.02, 0 , 0,
-0 , 0.02, 0,
-0 , 0 , 0.02
-]
+                                        0.02, 0 , 0,
+                                        0 , 0.02, 0,
+                                        0 , 0 , 0.02
+                                        ]
 
 # linear acceleration covariance estimation:
 # observed acceleration noise: 5 counts => 20milli-G's ~= 0.2m/s^2
 # nonliniarity spec: 0.5% of full scale => 0.2m/s^2
 # Choosing 0.2 as std dev, variance = 0.2^2 = 0.04
 imuMsg.linear_acceleration_covariance = [
-0.04 , 0 , 0,
-0 , 0.04, 0,
-0 , 0 , 0.04
-]
+                                            0.04 , 0 , 0,
+                                            0 , 0.04, 0,
+                                            0 , 0 , 0.04
+                                            ]
 
 # read basic information
 port = rospy.get_param('~port', '/dev/ttyUSB0')
@@ -178,21 +178,25 @@ pitch=0
 yaw=0
 seq=0
 
-# sensor reports raw accel which needs to be scaled by 8.192 ==>> as milli-g(1/1000 of earth gravity). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L191
-# Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
-# raw_accel*(1/8.192)*(1/1000)*9.80665 ==>> m/s^2 
-accel_factor = 0.00119710083    
+"""    
+    sensor reports raw accel which needs to be scaled by 8.192 ==>> as milli-g(1/1000 of earth gravity). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L191
+    Convert to m/s^2. (1000 milli-g = 9.80665 m/s^2)
+    raw_accel*(1/8.192)*(1/1000)*9.80665 ==>> m/s^2 
+"""
+accel_factor = 0.00119710083
+
+
+"""
+    raw Gyro data needs to be scaled by 131 to get ==>> DPS(°/s) ==>> RPS(rad/s). ref: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L220-L240 and https://github.com/adafruit/Adafruit_ICM20X/blob/6ec93fee035892f780176ffa64be3af1912be559/Adafruit_ICM20948.cpp#L139-L159
+    1 rad/s = 57.29578 °/s
+    raw_gyro*(1/131)*(1/57.29578) ==>> rad/s
+"""
+gyro_factor = 0.00013323123
+
+
+
 rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
-
-### configure board ###
-#stop datastream
-# ser.write(('#o0').encode("utf-8"))
-
-#discard old input
-#automatic flush - NOT WORKING
-#ser.flushInput()  #discard old input, still in invalid format
-#flush manually, as above command is not working
 
 for i in range(10):
     ser.flushInput()
@@ -252,15 +256,15 @@ while not rospy.is_shutdown():
         # Publish message
         # AHRS firmware accelerations are negated
         # This means y and z are correct for ROS, but x needs reversing
-        imuMsg.linear_acceleration.x = -float(words[3]) * accel_factor
-        imuMsg.linear_acceleration.y = float(words[4]) * accel_factor
-        imuMsg.linear_acceleration.z = float(words[5]) * accel_factor
+        imuMsg.linear_acceleration.x = -words[3] * accel_factor
+        imuMsg.linear_acceleration.y = words[4] * accel_factor
+        imuMsg.linear_acceleration.z = words[5] * accel_factor
 
-        imuMsg.angular_velocity.x = float(words[6])
+        imuMsg.angular_velocity.x = words[6] * gyro_factor
         #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
-        imuMsg.angular_velocity.y = -float(words[7])
+        imuMsg.angular_velocity.y = -words[7] * gyro_factor
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103) 
-        imuMsg.angular_velocity.z = -float(words[8])
+        imuMsg.angular_velocity.z = -words[8] * gyro_factor
 
     # q = quaternion_from_euler(roll,pitch,yaw)
     imuMsg.orientation.x = q1
