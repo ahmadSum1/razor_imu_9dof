@@ -35,6 +35,7 @@ import serial
 import string
 import math
 import sys
+import numpy as np
 
 #from time import time
 from sensor_msgs.msg import Imu
@@ -45,8 +46,17 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi/180.0
 imu_yaw_calibration = 0.0
+'''
+Compass calibration variables
+'''
+A_inv = np.array([[0,0,0],
+                  [0,0,0],
+                  [0,0,0]])
+b = np.array([[0],
+              [0],
+              [0]])
 
-print ("modified file")
+
 
 # Callback for dynamic reconfigure requests
 def reconfig_callback(config, level):
@@ -57,6 +67,13 @@ def reconfig_callback(config, level):
     rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
 
+def processMagData(mag_x_raw, mag_y_raw, mag_z_raw):
+    X = np.array([[mag_x_raw],
+                  [mag_y_raw],
+                  [mag_z_raw]])
+    X_tilda = np.matmul(A_inv, (X+b))
+
+    return X_tilda[0], X_tilda[1], X_tilda[2]
 def euler_from_quaternion(x, y, z, w):
         """
         Convert a quaternion into euler angles (roll, pitch, yaw)
@@ -193,6 +210,8 @@ accel_factor = 0.00119710083
 """
 gyro_factor = 0.00013323123
 
+mag_factor = 0.15     #to get microTesla from raw  https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/d5ae1eba1ecbf808fca9bff0b0b6dc4e571e947c/src/ICM_20948.cpp#L165
+
 
 
 rospy.loginfo("Giving the OLA IMU board 5 seconds to boot...")
@@ -223,7 +242,7 @@ while not rospy.is_shutdown():
     # print("processed data:")
     # print(words)
 
-    if len(words) != 9:
+    if len(words) != 9 or len(words) != 12:
         rospy.logwarn("Bad IMU data or bad sync")
         errcount = errcount+1
         continue
@@ -265,6 +284,19 @@ while not rospy.is_shutdown():
         imuMsg.angular_velocity.y = -words[7] * gyro_factor
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103) 
         imuMsg.angular_velocity.z = -words[8] * gyro_factor
+
+        # mag data preprocessing (if there)
+        if len(words) != 12:
+            #check and varify mag axises with actual configuration
+            mag_x_raw = words[9] * mag_factor
+            mag_y_raw = words[10] * mag_factor
+            mag_z_raw = words[11] * mag_factor
+            
+            '''
+            do calibration maths
+            '''
+            mag_x, mag_y, mag_z = processMagData(mag_x_raw, mag_y_raw, mag_z_raw)
+            yaw = np.atan2(mag_y, mag_x) #in radians
 
     # q = quaternion_from_euler(roll,pitch,yaw)
     imuMsg.orientation.x = q1
